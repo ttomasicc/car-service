@@ -1,0 +1,34 @@
+com:
+  carservice:
+    # Car Name API
+    car-name-api:
+      base-url: http://localhost:8008
+
+server:
+  error:
+    include-message: always
+
+spring:
+  # Redis
+  cache:
+    type: redis
+    redis:
+      cache-null-values: false
+
+  # PostgreSQL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/car_service
+    username: admin
+    password: admin
+
+  # JPA
+  jpa:
+    open-in-view: false
+    show-sql: true
+
+  # Dummy Authorization Resource Server
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "http://localhost:8888/jwks.json"

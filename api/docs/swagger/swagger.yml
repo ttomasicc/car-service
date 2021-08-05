@@ -1,0 +1,364 @@
+openapi: 3.0.3
+
+info:
+  title: Car Service API
+  description: REST API for managing cars and their check-ups
+  contact:
+    name: Tin Tomašić
+    email: tin.tomasic74@gmail.com
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Best server
+
+tags:
+  - name: car
+    description: Everything about your car
+  - name: car check-ups
+    description: Check-ups related to cars
+  - name: check-ups
+    description: Everything about your check-ups
+  - name: info
+    description: General information
+
+paths:
+  /cars:
+    post:
+      tags:
+        - car
+      summary: Save car
+      responses:
+        201:
+          description: Created
+        400:
+          description: Invalid request body
+      requestBody:
+        description: Car object that needs to be saved to the database
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CarRequest'
+      security:
+        - car-service-auth:
+            - 'USER'
+    get:
+      tags:
+        - car
+      summary: Returns page of cars
+      parameters:
+        - in: query
+          name: pageable
+          required: false
+          schema:
+            $ref: '#/components/schemas/Pageable'
+      responses:
+        200:
+          description: OK
+      security:
+        - car-service-auth:
+            - 'ADMIN'
+
+  '/cars/{id}':
+    get:
+      tags:
+        - car
+      summary: Returns single car by ID
+      parameters:
+        - name: id
+          in: path
+          description: ID of car to return
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+        400:
+          description: Invalid ID supplied
+          content:
+            { }
+        404:
+          description: Car not found
+          content:
+            { }
+      security:
+        - car-service-auth:
+            - 'USER'
+    delete:
+      tags:
+        - car
+      summary: Deletes single car by ID
+      parameters:
+        - name: id
+          in: path
+          description: ID of car to delete
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: No Content
+        404:
+          description: Car not found
+          content:
+            { }
+      security:
+        - car-service-auth:
+            - 'ADMIN'
+
+  '/cars/{id}/checkups':
+    post:
+      tags:
+        - car check-ups
+      summary: Save check-up
+      parameters:
+        - name: id
+          in: path
+          description: car ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        201:
+          description: Created
+        400:
+          description: Invalid request body
+        404:
+          description: Car not found
+          content:
+            { }
+      requestBody:
+        description: Check-up object that needs to be saved to the database
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckUpRequest'
+      security:
+        - car-service-auth:
+            - 'ADMIN'
+    get:
+      tags:
+        - car check-ups
+      summary: Returns page of check-ups for specific car
+      parameters:
+        - name: id
+          in: path
+          description: car ID
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: pageable
+          required: false
+          schema:
+            $ref: '#/components/schemas/Pageable'
+      responses:
+        200:
+          description: OK
+        404:
+          description: Car not found
+          content:
+            { }
+      security:
+        - car-service-auth:
+            - 'USER'
+
+  '/checkups/{id}':
+    get:
+      tags:
+        - check-ups
+      summary: Returns single check-up by ID
+      parameters:
+        - name: id
+          in: path
+          description: ID of check-up to return
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+        400:
+          description: Invalid ID supplied
+          content:
+            { }
+        404:
+          description: Check-up not found
+          content:
+            { }
+      security:
+        - car-service-auth:
+            - 'USER'
+    delete:
+      tags:
+        - check-ups
+      summary: Deletes single check-up by ID
+      parameters:
+        - name: id
+          in: path
+          description: ID of check-up to delete
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: No Content
+        404:
+          description: Check-up not found
+          content:
+            { }
+      security:
+        - car-service-auth:
+            - 'ADMIN'
+
+  '/checkups/last':
+    get:
+      tags:
+        - check-ups
+      summary: Returns list of last performed check-ups
+      parameters:
+        - name: limit
+          in: query
+          description: limits number of check-ups to fetch
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+      security:
+        - car-service-auth:
+            - 'ADMIN'
+
+  '/checkups/upcoming':
+    get:
+      tags:
+        - check-ups
+      summary: Returns list of upcoming check-ups
+      parameters:
+        - name: duration
+          in: query
+          description: time period for which to look
+          required: false
+          schema:
+            type: string
+            enum:
+              - 'week'
+              - 'month'
+              - 'half-year'
+      responses:
+        200:
+          description: OK
+        400:
+          description: Invalid duration parameter
+      security:
+        - car-service-auth:
+            - 'ADMIN'
+
+  '/info/car-names':
+    get:
+      tags:
+        - info
+      summary: Returns page of all available car names
+      parameters:
+        - in: query
+          name: pageable
+          required: false
+          schema:
+            $ref: '#/components/schemas/Pageable'
+      responses:
+        200:
+          description: OK
+
+  '/info/car-names/used':
+    get:
+      tags:
+        - info
+      summary: Returns list of used car names
+      responses:
+        200:
+          description: OK
+
+components:
+  schemas:
+    CarRequest:
+      type: object
+      properties:
+        ownerId:
+          minimum: 1
+          description: Owner ID
+          type: integer
+          example: 42
+        manufacturer:
+          maxLength: 50
+          description: Manufacturer name
+          type: string
+          example: 'Porsche'
+        model:
+          maxLength: 50
+          description: Model name
+          type: string
+          example: 'Taycan Turbo S'
+        productionYear:
+          description: The year the car was produced
+          type: integer
+          example: 2021
+        serialNumber:
+          minLength: 1
+          maxLength: 6
+          description: Unique car serial number
+          type: string
+          example: '498902'
+      required:
+        - ownerId
+        - manufacturer
+        - model
+        - productionYear
+        - serialNumber
+
+    CheckUpRequest:
+      type: object
+      properties:
+        dateTime:
+          description: Date when check-up was/will be performed
+          type: string
+          example: '2022-01-17T10:30:00'
+        worker:
+          minLength: 1
+          description: Worker's name
+          type: string
+          example: 'Timmy'
+        price:
+          description: Cost of the check-up service
+          type: number
+          example: '420.50'
+      required:
+        - dateTime
+        - worker
+        - price
+
+    Pageable:
+      description: minimal Pageable query parameters
+      type: object
+      properties:
+        page:
+          minimum: 0
+          description: Page number
+          type: integer
+          example: 2
+        size:
+          minimum: 1
+          description: Page size
+          type: integer
+          example: 10
+
+  securitySchemes:
+    car-service-auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'http://localhost:8888/token'
+          scopes:
+            'ADMIN': admin privileges
+            'USER': user privileges

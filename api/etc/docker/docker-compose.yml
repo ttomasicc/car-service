@@ -1,0 +1,47 @@
+version: "3.9"
+
+networks:
+  default:
+    name: "car-service-api"
+
+volumes:
+  postgres_vol:
+  redis_vol:
+
+services:
+  api:
+    image: "soundwalk/car-service"
+    ports:
+      - "8080:8080"
+    environment:
+      - "COM_CARSERVICE_CAR_NAME_API_BASE_URL=http://host.docker.internal:8008"
+      - "SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/car_service"
+      - "SPRING_REDIS_HOST=redis"
+      - "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://oauth2-rs:8888/jwks.json"
+    depends_on:
+      - oauth2rs
+      - postgres
+      - redis
+
+  oauth2-rs:
+    image: "soundwalk/oauth2-rs:latest"
+    ports:
+      - "8888:8888"
+
+  postgres:
+    image: "postgres:13-alpine"
+    ports:
+      - "5432:5432"
+    volumes:
+      - "postgres_vol:/var/lib/postgresql/data"
+    environment:
+      - "POSTGRES_USER=admin"
+      - "POSTGRES_PASSWORD=admin"
+      - "POSTGRES_DB=car_service"
+
+  redis:
+    image: "redis:6.2.5-alpine"
+    ports:
+      - "6379:6379"
+    volumes:
+      - "redis_vol:/data"

@@ -1,0 +1,14 @@
+com:
+  carservice:
+    # Car Name API
+    car-name-api:
+      base-url: http://localhost:${mockServerPort}
+
+spring:
+  # Disable caching
+  cache:
+    type: none
+
+  # PostgreSQL test container
+  datasource:
+    url: jdbc:tc:postgresql:13-alpine://localhost:5432/car_service
